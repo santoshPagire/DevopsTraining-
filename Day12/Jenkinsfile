@@ -1,0 +1,56 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'maven-3.9.8' 
+    }
+    parameters{
+        choice(choices:['test','compile','package'], description:"select maven Goal", name:"userChoice")
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    git branch: 'main',
+                        credentialsId: 'Github', 
+                        url: 'https://github.com/santoshPagire/DevOpsClassCodes.git'
+                }
+
+                
+            }
+        }
+
+        stage('Build') {
+            steps {
+    
+                sh 'mvn clean install'
+                
+            }
+        }
+        stage('Test'){
+            steps{
+                sh "mvn ${params.userChoice}"
+            }
+        }
+
+        stage('Archive Artifacts') {
+            steps {
+        
+                archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline finished.'
+        }
+        success {
+            echo 'Pipeline succeeded.'
+        }
+        failure {
+            echo 'Pipeline failed.'
+        }
+    }
+}
