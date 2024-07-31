@@ -1,0 +1,28 @@
+---
+- name: Manage files 
+  hosts: target
+  become: yes  
+  tasks:
+    - name: Create file with content
+      copy:
+        dest: /tmp/file.txt
+        content: |
+          This is a random content added .
+          This is another line.
+        mode: '0644'
+
+    - name: Create empty file
+      file:
+        path: /tmp/newfile.txt
+        state: touch
+
+    - name: Delete file
+      file:
+        path: /tmp/newfile.txt
+        state: absent
+
+    - name: Modify a file 
+      lineinfile:
+        path: /tmp/file.txt
+        line: 'This is a new line added in file.'
+        create: yes

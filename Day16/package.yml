@@ -1,0 +1,7 @@
+---
+- name: Install a specific package 
+  hosts: target
+  become: yes  
+  tasks:
+    - name : Install package
+      apt: name=nginx state=latest update_cache=true
