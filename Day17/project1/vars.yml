@@ -1,0 +1,3 @@
+db_user: test
+db_pass: test123
+db_name: testdb
