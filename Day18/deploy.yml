@@ -1,0 +1,23 @@
+---
+- name: tree tier application
+  hosts: target
+  become: yes
+  tasks:
+    - name: update_cache
+      apt:
+        update_cache: yes
+  
+# - hosts: target
+#   become: true
+#   roles: 
+#     - database
+
+- hosts: target
+  become: true
+  roles: 
+    - backend
+
+# - hosts: target
+#   become: true
+#   roles: 
+#     - frontend

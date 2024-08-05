@@ -1,0 +1,41 @@
+---
+- name: Test Node.js Installation
+  hosts: target 
+  become: true
+  tasks:
+    - name: Check if Node.js is installed
+      command: node -v
+      register: node_version
+      changed_when: false
+      failed_when: node_version.rc != 0
+
+    - name: Print Node.js version
+      debug:
+        msg: "Node.js version installed: {{ node_version.stdout }}"
+
+    - name: Check if npm (Node Package Manager) is installed
+      command: npm -v
+      register: npm_version
+      changed_when: false
+      failed_when: npm_version.rc != 0
+
+    - name: Print npm version
+      debug:
+        msg: "npm version installed: {{ npm_version.stdout }}"
+
+    - name: Verify that the Node.js application is running (if applicable)
+      # Replace 'my-node-app' with the actual service name if you're using a process manager like PM2
+      shell: |
+        if pgrep -f 'my-node-app'; then
+          echo "Node.js application is running."
+        else
+          echo "Node.js application is NOT running."
+          exit 1
+        fi
+      register: app_status
+      changed_when: false
+      failed_when: app_status.rc != 0
+
+    - name: Print application status
+      debug:
+        msg: "{{ app_status.stdout }}"

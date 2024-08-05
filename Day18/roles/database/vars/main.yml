@@ -1,0 +1,6 @@
+---
+root_password: *****
+admin_user: username
+admin_password: *******
+db_name: dbname
+password_validation_policy: 1    
