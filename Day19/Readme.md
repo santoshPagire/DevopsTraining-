@@ -143,9 +143,10 @@ ansible-playbook main.yml
 
 - Successfully deployed web application on the EC2 instance.
 
-![alt text](<images/Screenshot from 2024-08-07 10-21-04.png>)
-![alt text](<images/Screenshot from 2024-08-07 10-21-59.png>)
+![alt text](<images/Screenshot from 2024-08-07 12-44-04.png>)
+![alt text](<images/Screenshot from 2024-08-07 12-44-32.png>)
 
 Output:
-
+![alt text](<images/Screenshot from 2024-08-07 12-12-40.png>)
 ![alt text](<images/Screenshot from 2024-08-06 23-15-07.png>)
+
