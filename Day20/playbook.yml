@@ -1,0 +1,7 @@
+---
+- name: Test EC2 Inventory
+  hosts: all
+  tasks:
+    - name: Print hostname
+      debug:
+        msg: "Host {{ inventory_hostname }} with IP {{ ansible_host }}"
