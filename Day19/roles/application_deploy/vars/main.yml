@@ -1,0 +1,6 @@
+---
+# vars file for roles/application_deploy
+db_host: "localhost"
+db_user: "Admin"
+db_password: "Admin@123"
+db_name: "testdb"

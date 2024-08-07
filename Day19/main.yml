@@ -1,0 +1,13 @@
+---
+- name: tree tier application
+  hosts: all
+  become: yes
+  tasks:
+    - name: update_cache
+      apt:
+        update_cache: yes
+
+  roles:
+    - database
+    - application_deploy
+    - webserver

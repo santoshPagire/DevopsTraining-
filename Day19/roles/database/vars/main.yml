@@ -1,0 +1,17 @@
+---
+# vars file for roles/database
+
+# mysql_user: mysql
+# mysql_group: mysql
+
+# db_user: appUser
+# db_password: user@123
+# db_root_password: password
+# db_name: testDB
+
+root_password: root@123
+admin_user: Admin
+admin_password: Admin@123
+db_name: testdb
+password_validation_policy: 1    
+

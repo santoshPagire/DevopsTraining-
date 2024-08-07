@@ -1,0 +1,5 @@
+---
+webserver_port: 80
+webserver_name: localhost
+webserver_root: /var/www/html
+
