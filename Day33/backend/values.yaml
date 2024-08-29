@@ -1,0 +1,26 @@
+replicaCount: 1
+
+image:
+  repository: santoshpagire/nodejs-app
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  name: backend-service
+  type: ClusterIP
+  port: 3000
+  targetPort: 3000
+
+mysql:
+  host: ""
+  port: "3306"
+  user: ""
+  password: ""
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
