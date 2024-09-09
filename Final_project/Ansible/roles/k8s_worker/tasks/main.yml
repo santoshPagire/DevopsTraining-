@@ -1,0 +1,88 @@
+---
+# tasks file for k8s_slave on Ubuntu
+- name: "Installing docker and iproute2"
+  apt:
+    name:
+      - docker.io
+      - iproute2
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gpg
+    state: present
+    update_cache: yes
+
+- name: Get Kubernetes package key
+  shell: curl -fsSL {{ k8s_url_apt_key }} | gpg --dearmor -o {{ k8s_gpgpath }}
+  args:
+    creates: "{{ k8s_gpgpath }}"
+
+- name: Install Kubernetes repository
+  apt_repository:
+    filename: kubernetes
+    repo: "deb [signed-by={{ k8s_gpgpath }}] {{ k8s_repository }} /"
+
+# - name: "Configuring the APT repo for Kubernetes"
+#   apt_repository:
+#     repo: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+#     state: present
+#     filename: kubernetes
+#     update_cache: yes
+
+# - name: "Adding Kubernetes APT repository key"
+#   apt_key:
+#     url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+#     state: present
+
+- name: "Installing kubeadm, kubelet, kubectl programs"
+  apt:
+    name:
+      - kubelet
+      - kubectl
+      - kubeadm
+    state: present
+    update_cache: yes
+
+- name: "Enabling and starting kubelet and docker services"
+  systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  loop:
+    - kubelet
+    - docker
+
+- name: "Pulling the config images"
+  shell: kubeadm config images pull
+
+- name: "Configuring the Docker daemon.json file"
+  copy:
+    dest: /etc/docker/daemon.json
+    src: daemon.json
+
+- name: "Restarting the Docker service"
+  systemd:
+    name: docker
+    state: restarted
+
+- name: "Configuring the IP tables and refreshing sysctl"
+  copy:
+    dest: /etc/sysctl.d/iptables-1.conf
+    src: iptables-1.conf
+
+- name: "Applying sysctl configuration"
+  shell: sysctl --system
+
+# - name: "Copy the join command to server location"
+#   copy:
+#     src: /etc/ansible/roles/join-command
+#     dest: /tmp/join-command.sh
+#     mode: '0755'
+
+# - name: "Running the join command script"
+#   shell: sh /tmp/join-command.sh
+
+- name: Join the worker node to the Kubernetes cluster
+  ansible.builtin.command:
+    cmd: "{{ hostvars[groups['role_master'][0]].kubeadm_join_cmd }}"
+  when: hostvars[groups['role_master'][0]].kubeadm_join_cmd is defined

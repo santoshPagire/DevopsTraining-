@@ -1,0 +1,145 @@
+---
+# tasks file for k8s_master on Ubuntu
+- name: "Installing docker and iproute-tc"
+  apt:
+    name:
+      - docker.io
+      - iproute2
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gpg
+      - curl
+    state: present
+    update_cache: yes
+
+- name: Get Kubernetes package key
+  shell: curl -fsSL {{ k8s_url_apt_key }} | gpg --dearmor -o {{ k8s_gpgpath }}
+  args:
+    creates: "{{ k8s_gpgpath }}"
+
+- name: Install Kubernetes repository
+  apt_repository:
+    filename: kubernetes
+    repo: "deb [signed-by={{ k8s_gpgpath }}] {{ k8s_repository }} /"
+
+# Helm char installation using Helm chart
+- name: Download Helm binary
+  get_url:
+    url: "https://get.helm.sh/helm-v{{ helm_version }}-linux-amd64.tar.gz"
+    dest: "/tmp/helm.tar.gz"
+
+- name: Extract Helm binary
+  unarchive:
+    src: "/tmp/helm.tar.gz"
+    dest: "/usr/local/bin/"
+    remote_src: yes
+
+- name: Verify Helm installation
+  command: helm version --short
+  register: helm_version_output
+  changed_when: false
+
+- name: Add Helm repository
+  command: helm repo add myrepo {{ helm_chart_repo }}
+  register: helm_repo_add_output
+  changed_when: "'already exists' not in helm_repo_add_output.stderr"
+
+- name: Update Helm repositories
+  command: helm repo update
+
+- name: Install Helm chart
+  command: helm upgrade --install {{ release_name }} myrepo/{{ helm_chart_name }} --version {{ helm_chart_version }} --namespace {{ namespace }}
+  register: helm_install_output
+  changed_when: "'already exists' not in helm_install_output.stderr"
+
+- name: Check Helm release status
+  command: helm status {{ release_name }} --namespace {{ namespace }}
+  register: helm_status_output
+  changed_when: false
+
+- name: Display Helm release status
+  debug:
+    msg: "{{ helm_status_output.stdout }}"
+
+- name: "Installing kubeadm, kubelet, kubectl programs"
+  apt:
+    name:
+      - kubernetes-cni
+      - kubelet
+      - kubectl
+      - kubeadm
+    state: present
+    update_cache: yes
+
+- name: "Enabling and starting kubelet and docker services"
+  systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  loop:
+    - kubelet
+    - docker
+
+- name: "Pulling the config images"
+  shell: kubeadm config images pull
+
+- name: "Configuring the Docker daemon.json file"
+  copy:
+    dest: /etc/docker/daemon.json
+    src: daemon.json
+
+- name: "Restarting the Docker service"
+  systemd:
+    name: docker
+    state: restarted
+
+- name: "Configuring the IP tables and refreshing sysctl"
+  copy:
+    dest: /etc/sysctl.d/iptables-1.conf
+    src: iptables-1.conf
+
+- name: "Applying sysctl configuration"
+  shell: sysctl --system
+
+- name: "Starting kubeadm initialization"
+  shell: kubeadm init --pod-network-cidr={{ ipp }} --ignore-preflight-errors=NumCPU --ignore-preflight-errors=Mem
+
+- name: "Creating .kube Directory"
+  file:
+    path: "{{ ansible_env.HOME }}/.kube"
+    state: directory
+
+- name: "Copying kubeconfig file"
+  shell: cp -i /etc/kubernetes/admin.conf "{{ ansible_env.HOME }}/.kube/config"
+  ignore_errors: yes
+
+- name: "Installing Addons e.g flannel"
+  shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+# - name: "Creating the token"
+#   shell: kubeadm token create --print-join-command
+#   register: token
+
+# - debug:
+#     msg: "{{ token.stdout }}"
+
+# - name: "Copy join command to local file"
+#   local_action:
+#     module: copy
+#     content: "{{ token.stdout }}"
+#     dest: "/etc/ansible/roles/join-command.sh"
+#   become: yes
+
+- name: Get kubeadm join command
+  ansible.builtin.command:
+    cmd: kubeadm token create --print-join-command
+  register: join_command
+
+- name: Save join command to a fact
+  ansible.builtin.set_fact:
+    kubeadm_join_cmd: "{{ join_command.stdout }}"
+
+- name: Display kubeadm join command
+  ansible.builtin.debug:
+    msg: "{{ kubeadm_join_cmd }}"

@@ -1,0 +1,12 @@
+---
+# vars file for k8s_master
+ipp: "10.240.0.0/16"
+k8s_url_apt_key: "https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key"
+k8s_gpgpath: /usr/share/keyrings/kubernetes-apt-keyring.gpg
+k8s_repository: "https://pkgs.k8s.io/core:/stable:/v1.29/deb/"
+helm_version: "3.11.1"
+helm_chart_name: "mychart"
+helm_chart_repo: "https://charts.bitnami.com/bitnami"
+helm_chart_version: "1.0.0"
+release_name: "myrelease"
+namespace: "default"

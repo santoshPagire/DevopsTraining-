@@ -1,0 +1,4 @@
+- hosts: controleplane
+  roles:
+          - role: k8s_master
+
